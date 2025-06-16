@@ -1,0 +1,3 @@
+C:/Users/Kacper/Desktop/ProjektAM/cmake-build-debug/CMakeFiles/mniam_player.dir
+C:/Users/Kacper/Desktop/ProjektAM/cmake-build-debug/CMakeFiles/edit_cache.dir
+C:/Users/Kacper/Desktop/ProjektAM/cmake-build-debug/CMakeFiles/rebuild_cache.dir
