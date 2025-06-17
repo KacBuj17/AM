@@ -12,7 +12,7 @@
 #include "amcom.h"
 #include "amcom_packets.h"
 
-#define MAX_OBJECTS_PER_TYPE 16
+#define MAX_OBJECTS_TYPE 100
 #define RECORD_SIZE 12
 
 typedef struct {
@@ -23,10 +23,15 @@ typedef struct {
     float y;
 } ObjectState;
 
-ObjectState myPlayer = {0, 255, 0, 0.0f, 0.0f};
+volatile ObjectState myPlayer = {0, 255, 0, 0.0f, 0.0f};
 
-ObjectState objects[4][MAX_OBJECTS_PER_TYPE];
-size_t counts[4] = {0};
+volatile ObjectState objects[4][MAX_OBJECTS_TYPE];
+volatile size_t counts[4] = {0};
+
+volatile const float DANGER_DIST_SPARK = 80.0f;
+volatile const float DANGER_DIST_GLUE = 150.0f;
+volatile const float DANGER_DIST_BIGGER = 150.0f;
+volatile float lastAngle = 0.0f;
 
 void update_object_list(ObjectState *list, size_t *count, const ObjectState *newObj) {
     for (size_t i = 0; i < *count; i++) {
@@ -46,7 +51,7 @@ void update_object_list(ObjectState *list, size_t *count, const ObjectState *new
     }
 
     if (newObj->hp != 0) {
-        if (*count < MAX_OBJECTS_PER_TYPE) {
+        if (*count < MAX_OBJECTS_TYPE) {
             list[*count] = *newObj;
             (*count)++;
             printf("Added new object type %u, no=%u\n", newObj->objectType, newObj->objectNo);
@@ -113,7 +118,34 @@ float reverse_angle(float angle) {
     return angle;
 }
 
-void find_closest_static_object(float myX, float myY, ObjectState objects[], size_t count,
+float attraction_score(float distance, float weight, float min_distance) {
+    return weight / (distance + min_distance);
+}
+
+float normalize_angle(float angle) {
+    while (angle < 0.0f) angle += 2 * M_PI;
+    while (angle >= 2 * M_PI) angle -= 2 * M_PI;
+    return angle;
+}
+
+float get_random_explore_angle(float last) {
+    float randomNoise = ((rand() % 1000) / 1000.0f - 0.5f) * 0.6f;
+    return normalize_angle(last + randomNoise);
+}
+
+float avoid_angle(float threatAngle) {
+    float left = normalize_angle(threatAngle + M_PI / 2);
+    float right = normalize_angle(threatAngle - M_PI / 2);
+    float back = normalize_angle(threatAngle + M_PI);
+
+    int r = rand() % 3;
+    if (r == 0) return left;
+    if (r == 1) return right;
+    return back;
+}
+
+//
+void find_closest_static_object(float myX, float myY, volatile ObjectState objects[], size_t count,
                                 float* closestObjectDist, float* closestObjectAngle) {
     for (size_t i = 0; i < count; i++) {
         if (objects[i].hp <= 0) continue;
@@ -127,7 +159,7 @@ void find_closest_static_object(float myX, float myY, ObjectState objects[], siz
 }
 
 void find_closest_player(float myX, float myY, int myHP,
-                         ObjectState objects[], size_t count,
+                         volatile ObjectState objects[], volatile size_t count,
                          float* closestBiggerDist, float* closestBiggerAngle,
                          float* closestSmallerDist, float* closestSmallerAngle) {
     for (size_t i = 0; i < count; i++) {
@@ -153,24 +185,29 @@ float decide_target_angle(float closestBiggerPlayerDist, float closestBiggerPlay
                           float closestSparkDist, float closestSparkAngle,
                           float closestTransistorDist, float closestTransistorAngle) {
 
-    if (closestSparkDist < 8.0f)
-        return reverse_angle(closestSparkAngle);
+    if (closestSparkDist < DANGER_DIST_SPARK)
+        return lastAngle = avoid_angle(closestSparkAngle);
 
-    if (closestBiggerPlayerDist < 8.0f)
-        return reverse_angle(closestBiggerPlayerAngle);
+    if (closestBiggerPlayerDist < DANGER_DIST_BIGGER)
+        return lastAngle = avoid_angle(closestBiggerPlayerAngle);
 
-    if (closestGlueDist < 5.0f)
-        return reverse_angle(closestGlueAngle);
+    // if (closestGlueDist < DANGER_DIST_GLUE)
+    //     return lastAngle = avoid_angle(closestGlueAngle);
 
-    if (closestSmallerPlayerDist < FLT_MAX)
-        return closestSmallerPlayerAngle;
+    float scorePrey = (closestSmallerPlayerDist < FLT_MAX)
+        ? attraction_score(closestSmallerPlayerDist, 5.0f, 1.0f) : 0.0f;
+
+    float scoreTransistor = (closestTransistorDist < FLT_MAX)
+        ? attraction_score(closestTransistorDist, 3.0f, 1.0f) : 0.0f;
+
+    if (scorePrey >= scoreTransistor && closestSmallerPlayerDist < FLT_MAX)
+        return lastAngle = closestSmallerPlayerAngle;
 
     if (closestTransistorDist < FLT_MAX)
-        return closestTransistorAngle;
+        return lastAngle = closestTransistorAngle;
 
-    return 0.0f;
+    return lastAngle = get_random_explore_angle(lastAngle);
 }
-
 
 float compute_move_angle(float myX, float myY, uint16_t myHP) {
     float closestTransistorDist = FLT_MAX;
@@ -223,7 +260,7 @@ void amPacketHandler(const AMCOM_Packet* packet, void* userContext) {
         printf("Got NEW_GAME.request. Responding with NEW_GAME.response\n");
         myPlayer.objectNo = packet->payload[0];
         AMCOM_NewGameResponsePayload newGameResponse;
-        strcpy(newGameResponse.helloMessage, "Hello from Kacper");
+        strcpy(newGameResponse.helloMessage, "Hello, is it me you're looking for?");
         toSend = AMCOM_Serialize(AMCOM_NEW_GAME_RESPONSE, &newGameResponse, sizeof(newGameResponse), buf);
         break;
     }
@@ -239,7 +276,7 @@ void amPacketHandler(const AMCOM_Packet* packet, void* userContext) {
     case AMCOM_GAME_OVER_REQUEST: {
         printf("Got GAME_OVER.request. Responding with GAME_OVER.response\n");
         AMCOM_GameOverResponsePayload gameOverResponse;
-        strcpy(gameOverResponse.endMessage, "Goodbye!");
+        strcpy(gameOverResponse.endMessage, "Adios Amigos");
         toSend = AMCOM_Serialize(AMCOM_GAME_OVER_RESPONSE, &gameOverResponse, sizeof(gameOverResponse), buf);
         break;
     }
