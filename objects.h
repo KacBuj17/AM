@@ -25,45 +25,80 @@ typedef struct {
 } ObjectState;
 
 /**
- * @brief The state of the local player.
- */
-extern volatile ObjectState myPlayer;
-
-/**
- * @brief All visible objects, categorized by type.
+ * @brief Returns a pointer to the structure representing the local player.
  *
- * Indexes:
- * - 0: Players
- * - 1: Transistors
- * - 2: Sparks (dangerous)
- * - 3: Glue (dangerous)
+ * This function provides access to the local player's object state (`myPlayer`),
+ * which can be read or modified as needed.
+ *
+ * @return Pointer to the `myPlayer` object.
  */
-extern volatile ObjectState objects[4][MAX_OBJECTS_TYPE];
+volatile ObjectState* get_my_player(void);
 
 /**
- * @brief Count of objects for each type in the objects array.
+ * @brief Returns a pointer to the array of all object lists.
+ *
+ * This function provides access to a 2D array (`objects`) containing lists of
+ * objects, grouped by type. Each row corresponds to one object type (e.g., player, spark, glue).
+ *
+ * @return Pointer to a 2D array of `ObjectState` objects.
  */
-extern volatile size_t counts[4];
+ObjectState (*get_objects_lists(void))[MAX_OBJECTS_TYPE];
 
 /**
- * @brief Minimum distance at which sparks are considered dangerous.
+ * @brief Returns a pointer to the array of object counts for each type.
+ *
+ * This function returns a pointer to the array (`counts`) holding the number
+ * of active objects for each type.
+ *
+ * @return Pointer to the `counts` array.
  */
-extern const float DANGER_DIST_SPARK;
+volatile size_t* get_object_counts(void);
 
 /**
- * @brief Minimum distance at which glue puddles are considered dangerous.
+ * @brief Returns the danger distance for spark objects.
+ *
+ * This value defines the radius within which sparks are considered dangerous.
+ *
+ * @return Floating point value representing the danger distance for sparks.
  */
-extern const float DANGER_DIST_GLUE;
+float get_danger_dist_spark();
 
 /**
- * @brief Minimum distance at which larger players are considered dangerous.
+ * @brief Returns the danger distance for glue hazards.
+ *
+ * This value defines the radius within which glue objects are considered dangerous.
+ *
+ * @return Floating point value representing the danger distance for glue.
  */
-extern const float DANGER_DIST_BIGGER;
+float get_danger_dist_glue();
 
 /**
- * @brief Last angle returned by the movement computation logic.
+ * @brief Returns the danger distance for bigger players.
+ *
+ * This value defines the radius within which larger players are considered a threat.
+ *
+ * @return Floating point value representing the danger distance for bigger players.
  */
-extern float lastAngle;
+float get_danger_dist_bigger_plr();
+
+/**
+ * @brief Returns the last stored movement or facing angle.
+ *
+ * The angle is typically used for tracking or adjusting the player's movement direction.
+ *
+ * @return Last stored angle as a floating point value.
+ */
+float get_last_angle();
+
+/**
+ * @brief Sets and returns the last movement or facing angle.
+ *
+ * This function updates the stored angle and returns the new value.
+ *
+ * @param angle New angle value to store.
+ * @return The angle that was set.
+ */
+float set_last_angle(float angle);
 
 /**
  * @brief Processes an incoming object update payload.

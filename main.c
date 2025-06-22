@@ -26,7 +26,8 @@ void amPacketHandler(const AMCOM_Packet* packet, void* userContext) {
 
     case AMCOM_NEW_GAME_REQUEST: {
         printf("Got NEW_GAME.request. Responding with NEW_GAME.response\n");
-        myPlayer.objectNo = packet->payload[0];
+        volatile ObjectState* myPlayer = get_my_player();
+        myPlayer->objectNo = packet->payload[0];
         AMCOM_NewGameResponsePayload newGameResponse;
         strcpy(newGameResponse.helloMessage, "Hello, is it me you're looking for?");
         toSend = AMCOM_Serialize(AMCOM_NEW_GAME_RESPONSE, &newGameResponse, sizeof(newGameResponse), buf);
@@ -35,8 +36,9 @@ void amPacketHandler(const AMCOM_Packet* packet, void* userContext) {
 
     case AMCOM_MOVE_REQUEST: {
         printf("Got MOVE.request. Responding with MOVE.response\n");
+        volatile ObjectState* myPlayer = get_my_player();
         AMCOM_MoveResponsePayload moveResponse;
-        moveResponse.angle = compute_move_angle(myPlayer.x, myPlayer.y, myPlayer.hp);
+        moveResponse.angle = compute_move_angle(myPlayer->x, myPlayer->y, myPlayer->hp);
         toSend = AMCOM_Serialize(AMCOM_MOVE_RESPONSE, &moveResponse, sizeof(moveResponse), buf);
         break;
     }

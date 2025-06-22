@@ -42,11 +42,11 @@ float decide_target_angle(float closestBiggerPlayerDist, float closestBiggerPlay
                           float closestSparkDist, float closestSparkAngle,
                           float closestGlueDist, float closestGlueAngle) {
 
-    if (closestSparkDist < DANGER_DIST_SPARK)
-        return lastAngle = avoid_angle(closestSparkAngle);
+    if (closestSparkDist < get_danger_dist_spark())
+        return set_last_angle(avoid_angle(closestSparkAngle));
 
-    if (closestBiggerPlayerDist < DANGER_DIST_BIGGER)
-        return lastAngle = avoid_angle(closestBiggerPlayerAngle);
+    if (closestBiggerPlayerDist < get_danger_dist_bigger_plr())
+        return set_last_angle(avoid_angle(closestBiggerPlayerAngle));
 
     // if (closestGlueDist < DANGER_DIST_GLUE)
     //     return lastAngle = avoid_angle(closestGlueAngle);
@@ -58,12 +58,12 @@ float decide_target_angle(float closestBiggerPlayerDist, float closestBiggerPlay
         ? attraction_score(closestTransistorDist, 5.0f) : 0.0f;
 
     if (scorePrey >= scoreTransistor && closestSmallerPlayerDist < FLT_MAX)
-        return lastAngle = closestSmallerPlayerAngle;
+        return set_last_angle(closestSmallerPlayerAngle);
 
     if (closestTransistorDist < FLT_MAX)
-        return lastAngle = closestTransistorAngle;
+        return set_last_angle(closestTransistorAngle);
 
-    return lastAngle = get_random_explore_angle(lastAngle);
+    return set_last_angle(get_random_explore_angle(get_last_angle()));
 }
 
 float compute_move_angle(float myX, float myY, uint8_t myHP) {
@@ -73,7 +73,10 @@ float compute_move_angle(float myX, float myY, uint8_t myHP) {
     float closestBiggerPlayerDist = FLT_MAX, closestBiggerPlayerAngle = 0.0f;
     float closestSmallerPlayerDist = FLT_MAX, closestSmallerPlayerAngle = 0.0f;
 
-    find_closest_player(myX, myY, myHP,objects[0], counts[0],
+    volatile ObjectState (*objects)[MAX_OBJECTS_TYPE] = get_objects_lists();
+    volatile size_t* counts = get_object_counts();
+
+    find_closest_player(myX, myY, myHP, objects[0], counts[0],
                         &closestBiggerPlayerDist, &closestBiggerPlayerAngle,
                         &closestSmallerPlayerDist, &closestSmallerPlayerAngle);
 

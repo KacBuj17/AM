@@ -13,6 +13,39 @@ const float DANGER_DIST_BIGGER = 150.0f;
 
 float lastAngle = 0.0f;
 
+volatile ObjectState* get_my_player(void) {
+    return &myPlayer;
+}
+
+ObjectState (*get_objects_lists(void))[MAX_OBJECTS_TYPE] {
+    return objects;
+}
+
+volatile size_t* get_object_counts(void) {
+    return counts;
+}
+
+float get_danger_dist_spark() {
+    return DANGER_DIST_SPARK;
+}
+
+float get_danger_dist_glue() {
+    return DANGER_DIST_GLUE;
+}
+
+float get_danger_dist_bigger_plr() {
+    return DANGER_DIST_BIGGER;
+}
+
+float get_last_angle() {
+    return lastAngle;
+}
+
+float set_last_angle(float angle) {
+    lastAngle = angle;
+    return lastAngle;
+}
+
 void update_object_list(volatile ObjectState *list, volatile size_t *count, const ObjectState *newObj) {
     for (size_t i = 0; i < *count; i++) {
         if (list[i].objectNo == newObj->objectNo) {
