@@ -18,8 +18,8 @@
  */
 typedef struct {
     uint8_t objectType;   /**< Type of the object (e.g., player, item, hazard). */
-    uint8_t objectNo;     /**< Unique identifier for the object within its type. */
-    uint16_t hp;          /**< Health points of the object. */
+    uint16_t objectNo;     /**< Unique identifier for the object within its type. */
+    uint8_t hp;          /**< Health points of the object. */
     float x;              /**< X coordinate of the object. */
     float y;              /**< Y coordinate of the object. */
 } ObjectState;

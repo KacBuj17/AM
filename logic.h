@@ -30,7 +30,7 @@ void find_closest_static_object(float myX, float myY, volatile ObjectState objec
  * @param closestSmallerDist Pointer to store distance to the closest weaker player (HP < myHP).
  * @param closestSmallerAngle Pointer to store angle to the closest weaker player.
  */
-void find_closest_player(float myX, float myY, int myHP,
+void find_closest_player(float myX, float myY, uint8_t myHP,
                          volatile ObjectState objects[], size_t count,
                          float* closestBiggerDist, float* closestBiggerAngle,
                          float* closestSmallerDist, float* closestSmallerAngle);
