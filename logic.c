@@ -73,15 +73,14 @@ float compute_move_angle(float myX, float myY, uint8_t myHP) {
     float closestBiggerPlayerDist = FLT_MAX, closestBiggerPlayerAngle = 0.0f;
     float closestSmallerPlayerDist = FLT_MAX, closestSmallerPlayerAngle = 0.0f;
 
-    volatile ObjectState (*objects)[MAX_OBJECTS_TYPE] = get_objects_lists();
     volatile size_t* counts = get_object_counts();
 
-    find_closest_player(myX, myY, myHP, objects[0], counts[0],
+    find_closest_player(myX, myY, myHP, get_objects_lists(0), counts[0],
                         &closestBiggerPlayerDist, &closestBiggerPlayerAngle,
                         &closestSmallerPlayerDist, &closestSmallerPlayerAngle);
 
     for (int i = 1; i <= 3; i++) {
-        find_closest_static_object(myX, myY, objects[i], counts[i], &closestDists[i], &closestAngles[i]);
+        find_closest_static_object(myX, myY, get_objects_lists(i), counts[i], &closestDists[i], &closestAngles[i]);
     }
 
     return decide_target_angle(

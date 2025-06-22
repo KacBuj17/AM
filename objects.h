@@ -35,14 +35,12 @@ typedef struct {
 volatile ObjectState* get_my_player(void);
 
 /**
- * @brief Returns a pointer to the array of all object lists.
+ * @brief Returns pointer to array of objects for a given type index.
  *
- * This function provides access to a 2D array (`objects`) containing lists of
- * objects, grouped by type. Each row corresponds to one object type (e.g., player, spark, glue).
- *
- * @return Pointer to a 2D array of `ObjectState` objects.
+ * @param typeIndex Index of the object type (0 to 3).
+ * @return Pointer to the array of ObjectState for that type, or NULL if out of range.
  */
-ObjectState (*get_objects_lists(void))[MAX_OBJECTS_TYPE];
+volatile ObjectState* get_objects_lists(int typeIndex);
 
 /**
  * @brief Returns a pointer to the array of object counts for each type.

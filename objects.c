@@ -17,8 +17,8 @@ volatile ObjectState* get_my_player(void) {
     return &myPlayer;
 }
 
-ObjectState (*get_objects_lists(void))[MAX_OBJECTS_TYPE] {
-    return objects;
+volatile ObjectState* get_objects_lists(int typeIndex){
+    return objects[typeIndex];
 }
 
 volatile size_t* get_object_counts(void) {
