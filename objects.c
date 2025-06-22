@@ -90,7 +90,7 @@ void handle_object_update_request(const uint8_t *payload, size_t payload_len) {
 
         uint8_t type = rec[0];
         uint16_t no = rec[1] | (rec[2] << 8);
-        int8_t hp = (int8_t)rec[3];
+        uint8_t hp = (int8_t)rec[3];
         float x, y;
         memcpy(&x, rec + 4, sizeof(float));
         memcpy(&y, rec + 8, sizeof(float));
